@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EVA - Assistente Nave (Simulado)</title>
-  <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -82,14 +82,12 @@
 </head>
 <body>
   <div class="logo">
-    <img src="/static/imagem.png" alt="Logo Nave IA">
+    <img src="imagem.png" alt="Logo Nave IA" />
     <h4>Assistente EVA - Suporte Nave</h4>
   </div>
 
   <div class="chat-container">
-    <div class="messages" id="chat">
-      <!-- mensagens aparecem aqui -->
-    </div>
+    <div class="messages" id="chat"></div>
     <div class="input-container">
       <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
       <button onclick="enviarMensagem()">Enviar</button>
@@ -117,4 +115,27 @@
 
       try {
         const response = await fetch("/ia-suporte", {
-          method: "POST
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mensagem: texto })
+        });
+
+        const data = await response.json();
+        chat.removeChild(typingMsg);
+
+        const resposta = document.createElement("div");
+        resposta.className = "message eva-msg";
+        resposta.innerText = data.resposta || "Desculpe, não consegui responder.";
+        chat.appendChild(resposta);
+        chat.scrollTop = chat.scrollHeight;
+      } catch (e) {
+        chat.removeChild(typingMsg);
+        const erro = document.createElement("div");
+        erro.className = "message eva-msg";
+        erro.innerText = "Erro ao se comunicar com a IA.";
+        chat.appendChild(erro);
+      }
+    }
+  </script>
+</body>
+</html>
