@@ -21,7 +21,7 @@ class UserMessage(BaseModel):
 
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
-    with open("static/index.html", "r", encoding="utf-8") as file:
+    with open("index.html", "r", encoding="utf-8") as file:
         return HTMLResponse(content=file.read())
 
 @app.post("/ia-suporte")
