@@ -82,7 +82,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="Texto%20do%20seu%20par%C3%A1grafo%20(2).png" alt="Logo Nave IA">
+    <img src="/static/Texto do seu parágrafo (2).png" alt="Logo Nave IA">
     <h4>Assistente EVA - Suporte Nave</h4>
   </div>
 
@@ -118,7 +118,7 @@
       chat.scrollTop = chat.scrollHeight;
 
       try {
-        const response = await fetch("http://localhost:8000/ia-suporte", {
+        const response = await fetch("/ia-suporte"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mensagem: texto })
