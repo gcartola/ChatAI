@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from openai import OpenAI
@@ -7,52 +7,42 @@ from dotenv import load_dotenv
 import os
 import time
 
-# Carrega as variáveis do .env
+# Carrega variáveis do .env
 load_dotenv()
 
-# Inicializa o cliente da OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 assistant_id = os.getenv("ASSISTANT_ID")
 
-# Inicializa a aplicação FastAPI
 app = FastAPI()
-
-# Serviço de arquivos estáticos (logo, CSS etc)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Define o modelo da mensagem recebida
 class UserMessage(BaseModel):
     mensagem: str
 
-# Rota principal para exibir o index.html
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    return FileResponse("index.html")
+def serve_index():
+    with open("static/index.html", "r", encoding="utf-8") as file:
+        return HTMLResponse(content=file.read())
 
-# Rota de comunicação com a IA
 @app.post("/ia-suporte")
 async def ia_suporte(request: UserMessage):
     print("📩 Mensagem recebida:", request.mensagem)
     print("🧠 Assistant ID:", assistant_id)
 
     try:
-        # Cria uma thread para manter contexto
         thread = client.beta.threads.create()
 
-        # Adiciona a mensagem do usuário
         client.beta.threads.messages.create(
             thread_id=thread.id,
             role="user",
             content=request.mensagem
         )
 
-        # Dispara a execução do assistant
         run = client.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=assistant_id
         )
 
-        # Acompanha até a conclusão
         max_wait = 60
         start = time.time()
 
@@ -70,9 +60,8 @@ async def ia_suporte(request: UserMessage):
             elif time.time() - start > max_wait:
                 return {"erro": "⏳ Tempo de resposta excedido. Tente novamente mais tarde."}
 
-            time.sleep(1)
+            time.sleep(0.2)  # Polling mais frequente para resposta mais rápida
 
-        # Busca a resposta
         messages = client.beta.threads.messages.list(thread_id=thread.id)
         resposta = None
 
