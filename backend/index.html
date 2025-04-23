@@ -82,7 +82,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="/static/Texto do seu parágrafo (2).png" alt="Logo Nave IA">
+    <img src="/static/imagem.png" alt="Logo Nave IA">
     <h4>Assistente EVA - Suporte Nave</h4>
   </div>
 
@@ -103,14 +103,12 @@
       const texto = input.value.trim();
       if (!texto) return;
 
-      // mostra a pergunta do usuário
       const userMsg = document.createElement("div");
       userMsg.className = "message user-msg";
       userMsg.innerText = texto;
       chat.appendChild(userMsg);
       input.value = "";
 
-      // mostra "EVA está digitando..."
       const typingMsg = document.createElement("div");
       typingMsg.className = "message eva-msg typing";
       typingMsg.innerText = "EVA está digitando...";
@@ -118,27 +116,5 @@
       chat.scrollTop = chat.scrollHeight;
 
       try {
-        const response = await fetch("/ia-suporte"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mensagem: texto })
-        });
-        const data = await response.json();
-        chat.removeChild(typingMsg);
-
-        const resposta = document.createElement("div");
-        resposta.className = "message eva-msg";
-        resposta.innerText = data.resposta || "Desculpe, não consegui responder.";
-        chat.appendChild(resposta);
-        chat.scrollTop = chat.scrollHeight;
-      } catch (e) {
-        chat.removeChild(typingMsg);
-        const erro = document.createElement("div");
-        erro.className = "message eva-msg";
-        erro.innerText = "Erro ao se comunicar com a IA.";
-        chat.appendChild(erro);
-      }
-    }
-  </script>
-</body>
-</html>
+        const response = await fetch("/ia-suporte", {
+          method: "POST
