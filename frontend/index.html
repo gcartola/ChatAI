@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVA - Assistente Nave (Simulado)</title>
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f6f7;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-top: 30px;
+    }
+    .logo {
+      text-align: center;
+    }
+    .logo img {
+      max-height: 80px;
+      margin-bottom: 10px;
+    }
+    .messages {
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .message {
+      margin-bottom: 15px;
+    }
+    .user-msg {
+      text-align: right;
+      background: #e6f0ff;
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 80%;
+    }
+    .eva-msg {
+      text-align: left;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 80%;
+    }
+    .typing {
+      font-style: italic;
+      color: gray;
+    }
+    .input-container {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    textarea {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="Texto%20do%20seu%20par%C3%A1grafo%20(2).png" alt="Logo Nave IA">
+    <h4>Assistente EVA - Suporte Nave</h4>
+  </div>
+
+  <div class="chat-container">
+    <div class="messages" id="chat">
+      <!-- mensagens aparecem aqui -->
+    </div>
+    <div class="input-container">
+      <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
+      <button onclick="enviarMensagem()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    async function enviarMensagem() {
+      const input = document.getElementById("mensagem");
+      const chat = document.getElementById("chat");
+      const texto = input.value.trim();
+      if (!texto) return;
+
+      // mostra a pergunta do usuário
+      const userMsg = document.createElement("div");
+      userMsg.className = "message user-msg";
+      userMsg.innerText = texto;
+      chat.appendChild(userMsg);
+      input.value = "";
+
+      // mostra "EVA está digitando..."
+      const typingMsg = document.createElement("div");
+      typingMsg.className = "message eva-msg typing";
+      typingMsg.innerText = "EVA está digitando...";
+      chat.appendChild(typingMsg);
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        const response = await fetch("http://localhost:8000/ia-suporte", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mensagem: texto })
+        });
+        const data = await response.json();
+        chat.removeChild(typingMsg);
+
+        const resposta = document.createElement("div");
+        resposta.className = "message eva-msg";
+        resposta.innerText = data.resposta || "Desculpe, não consegui responder.";
+        chat.appendChild(resposta);
+        chat.scrollTop = chat.scrollHeight;
+      } catch (e) {
+        chat.removeChild(typingMsg);
+        const erro = document.createElement("div");
+        erro.className = "message eva-msg";
+        erro.innerText = "Erro ao se comunicar com a IA.";
+        chat.appendChild(erro);
+      }
+    }
+  </script>
+</body>
+</html>

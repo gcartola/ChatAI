@@ -23,23 +23,26 @@ async def ia_suporte(request: UserMessage):
     print("🧠 Assistant ID:", assistant_id)
 
     try:
-        # 1. Cria a thread
+        # Cria a thread
         thread = client.beta.threads.create()
 
-        # 2. Adiciona a mensagem do usuário
+        # Adiciona a mensagem do usuário
         client.beta.threads.messages.create(
             thread_id=thread.id,
             role="user",
             content=request.mensagem
         )
 
-        # 3. Executa o agent
+        # Executa o agent
         run = client.beta.threads.runs.create(
             thread_id=thread.id,
             assistant_id=assistant_id
         )
 
-        # 4. Polling até finalizar
+        # Polling até finalizar (com timeout opcional)
+        max_wait = 60  # segundos
+        start = time.time()
+
         while True:
             run_status = client.beta.threads.runs.retrieve(
                 thread_id=thread.id,
@@ -48,17 +51,25 @@ async def ia_suporte(request: UserMessage):
 
             if run_status.status == "completed":
                 break
-
             elif run_status.status == "failed":
-                print("❌ Agent falhou:")
-                print(run_status)  # imprime detalhes do erro
-                return {"erro": "Falha na execução do agent. Veja detalhes no terminal."}
+                print("❌ Agent falhou:", run_status)
+                return {"erro": "A IA falhou ao processar sua dúvida. Tente novamente ou abra um chamado."}
+            elif time.time() - start > max_wait:
+                return {"erro": "Tempo de resposta excedido. Tente novamente mais tarde."}
 
             time.sleep(1)
 
-        # 5. Busca a resposta do agent
+        # Busca a resposta do agent
         messages = client.beta.threads.messages.list(thread_id=thread.id)
-        resposta = messages.data[0].content[0].text.value
+        resposta = None
+
+        for m in messages.data:
+            if m.role == "assistant":
+                resposta = m.content[0].text.value
+                break
+
+        if not resposta:
+            return {"erro": "⚠️ Nenhuma resposta foi retornada pela IA."}
 
         print("✅ Resposta gerada:", resposta)
         return {"resposta": resposta}
