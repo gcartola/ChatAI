@@ -21,7 +21,9 @@ class UserMessage(BaseModel):
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
-app.mount("/static", StaticFiles(directory="backend"), name="static")
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/", StaticFiles(directory="backend", html=True), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def home():
