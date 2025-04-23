@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVA - Assistente Nave (Simulado)</title>
+  <title>EVA - Assistente Nave</title>
   <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet">
   <style>
     body {
@@ -35,26 +35,25 @@
       margin-top: 20px;
       max-height: 300px;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
     .message {
-      max-width: 80%;
+      margin-bottom: 15px;
+    }
+    .user-msg {
+      text-align: right;
+      background: #e6f0ff;
       padding: 10px;
       border-radius: 10px;
       display: inline-block;
-      word-wrap: break-word;
-    }
-    .user-msg {
-      align-self: flex-end;
-      background: #e6f0ff;
-      text-align: right;
+      max-width: 80%;
     }
     .eva-msg {
-      align-self: flex-start;
-      background: #f0f0f0;
       text-align: left;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
+      max-width: 80%;
     }
     .typing {
       font-style: italic;
@@ -79,6 +78,10 @@
       border-radius: 6px;
       cursor: pointer;
     }
+    #reset-btn {
+      margin-top: 10px;
+      background: #e53935;
+    }
   </style>
 </head>
 <body>
@@ -88,26 +91,29 @@
   </div>
 
   <div class="chat-container">
-    <div class="messages" id="chat"></div>
+    <div class="messages" id="chat">
+      <!-- mensagens aparecem aqui -->
+    </div>
     <div class="input-container">
       <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
-      <button id="enviar" onclick="enviarMensagem()">Enviar</button>
+      <button onclick="enviarMensagem()" id="btn-enviar">Enviar</button>
     </div>
+    <button id="reset-btn" onclick="encerrarConversa()">Encerrar conversa</button>
   </div>
 
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("mensagem");
-    const botao = document.getElementById("enviar");
+    const btn = document.getElementById("btn-enviar");
 
     window.onload = () => {
-      const historico = JSON.parse(localStorage.getItem("historicoEVA")) || [];
-      historico.forEach(({tipo, texto}) => renderMensagem(tipo, texto));
-    }
+      const historico = JSON.parse(localStorage.getItem("chat_nave")) || [];
+      historico.forEach(msg => addMensagem(msg.texto, msg.tipo));
+    };
 
-    function renderMensagem(tipo, texto) {
+    function addMensagem(texto, tipo) {
       const msg = document.createElement("div");
-      msg.className = "message " + (tipo === 'user' ? "user-msg" : "eva-msg");
+      msg.className = `message ${tipo}`;
       msg.innerText = texto;
       chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
@@ -117,16 +123,15 @@
       const texto = input.value.trim();
       if (!texto) return;
 
-      renderMensagem("user", texto);
-      salvarNoHistorico("user", texto);
-
+      btn.disabled = true;
+      addMensagem(texto, "user-msg");
+      salvarNoHistorico(texto, "user-msg");
       input.value = "";
-      botao.disabled = true;
 
-      const digitando = document.createElement("div");
-      digitando.className = "message eva-msg typing";
-      digitando.innerText = "EVA está digitando...";
-      chat.appendChild(digitando);
+      const typing = document.createElement("div");
+      typing.className = "message eva-msg typing";
+      typing.innerText = "EVA está digitando...";
+      chat.appendChild(typing);
       chat.scrollTop = chat.scrollHeight;
 
       try {
@@ -136,23 +141,28 @@
           body: JSON.stringify({ mensagem: texto })
         });
         const data = await response.json();
-        chat.removeChild(digitando);
-        renderMensagem("eva", data.resposta);
-        salvarNoHistorico("eva", data.resposta);
+        chat.removeChild(typing);
+        addMensagem(data.resposta || "Desculpe, não consegui responder.", "eva-msg");
+        salvarNoHistorico(data.resposta || "Desculpe, não consegui responder.", "eva-msg");
       } catch (e) {
-        chat.removeChild(digitando);
-        const erro = "Erro ao se comunicar com a IA.";
-        renderMensagem("eva", erro);
-        salvarNoHistorico("eva", erro);
+        chat.removeChild(typing);
+        addMensagem("Erro ao se comunicar com a IA.", "eva-msg");
+        salvarNoHistorico("Erro ao se comunicar com a IA.", "eva-msg");
       } finally {
-        botao.disabled = false;
+        btn.disabled = false;
       }
     }
 
-    function salvarNoHistorico(tipo, texto) {
-      const historico = JSON.parse(localStorage.getItem("historicoEVA")) || [];
-      historico.push({ tipo, texto });
-      localStorage.setItem("historicoEVA", JSON.stringify(historico));
+    function salvarNoHistorico(texto, tipo) {
+      const historico = JSON.parse(localStorage.getItem("chat_nave")) || [];
+      historico.push({ texto, tipo });
+      localStorage.setItem("chat_nave", JSON.stringify(historico));
+    }
+
+    function encerrarConversa() {
+      localStorage.removeItem("chat_nave");
+      chat.innerHTML = "";
+      addMensagem("Conversa encerrada. Sempre que precisar, estou aqui para ajudar!", "eva-msg");
     }
   </script>
 </body>
