@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -14,20 +15,19 @@ assistant_id = os.getenv("ASSISTANT_ID")
 
 app = FastAPI()
 
+# Monta arquivos estáticos a partir do diretório atual (backend/)
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
+# Retorna o index.html na rota raiz
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return FileResponse("index.html")
+
+# Modelo da requisição
 class UserMessage(BaseModel):
     mensagem: str
 
-# Rota raiz que retorna o index.html
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
-
-app.mount("/", StaticFiles(directory="backend", html=True), name="static")
-
-@app.get("/", response_class=HTMLResponse)
-def home():
-    return FileResponse("backend/index.html")
-
-# Endpoint principal da IA
+# Endpoint principal
 @app.post("/ia-suporte")
 async def ia_suporte(request: UserMessage):
     print("📩 Mensagem recebida:", request.mensagem)
@@ -66,12 +66,10 @@ async def ia_suporte(request: UserMessage):
             time.sleep(1)
 
         messages = client.beta.threads.messages.list(thread_id=thread.id)
-        resposta = None
-
-        for m in messages.data:
-            if m.role == "assistant":
-                resposta = m.content[0].text.value
-                break
+        resposta = next(
+            (m.content[0].text.value for m in messages.data if m.role == "assistant"), 
+            None
+        )
 
         if not resposta:
             return {"erro": "⚠️ Nenhuma resposta foi retornada pela IA."}
@@ -80,3 +78,4 @@ async def ia_suporte(request: UserMessage):
 
     except Exception as e:
         return {"erro": f"Erro inesperado: {str(e)}"}
+
