@@ -44,18 +44,16 @@
       background: #e6f0ff;
       padding: 10px;
       border-radius: 10px;
-      display: block;
+      display: inline-block;
       max-width: 80%;
-      margin-left: auto;
     }
     .eva-msg {
       text-align: left;
       background: #f0f0f0;
       padding: 10px;
       border-radius: 10px;
-      display: block;
+      display: inline-block;
       max-width: 80%;
-      margin-right: auto;
     }
     .typing {
       font-style: italic;
@@ -80,10 +78,6 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    #reset-btn {
-      margin-top: 10px;
-      background: #e53935;
-    }
   </style>
 </head>
 <body>
@@ -96,42 +90,38 @@
     <div class="messages" id="chat"></div>
     <div class="input-container">
       <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
-      <button onclick="enviarMensagem()" id="btn-enviar">Enviar</button>
+      <button id="enviar" onclick="enviarMensagem()">Enviar</button>
     </div>
-    <button id="reset-btn" onclick="encerrarConversa()">Encerrar conversa</button>
+    <button onclick="encerrarConversa()" style="margin-top:10px;background:#e53935">Encerrar conversa</button>
   </div>
 
   <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("mensagem");
-    const btn = document.getElementById("btn-enviar");
-
-    window.onload = () => {
-      const historico = JSON.parse(localStorage.getItem("chat_nave")) || [];
-      historico.forEach(msg => addMensagem(msg.texto, msg.tipo));
-    };
-
-    function addMensagem(texto, tipo) {
-      const msg = document.createElement("div");
-      msg.className = `message ${tipo}`;
-      msg.innerText = texto;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+    function formatarMarkdown(texto) {
+      return texto
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/【\d+:\d+†source】/g, '');
     }
 
     async function enviarMensagem() {
+      const input = document.getElementById("mensagem");
+      const chat = document.getElementById("chat");
+      const botao = document.getElementById("enviar");
       const texto = input.value.trim();
       if (!texto) return;
 
-      btn.disabled = true;
-      addMensagem(texto, "user-msg");
-      salvarNoHistorico(texto, "user-msg");
-      input.value = "";
+      const userMsg = document.createElement("div");
+      userMsg.className = "message user-msg";
+      userMsg.innerText = texto;
+      chat.appendChild(userMsg);
 
-      const typing = document.createElement("div");
-      typing.className = "message eva-msg typing";
-      typing.innerText = "EVA está digitando...";
-      chat.appendChild(typing);
+      input.value = "";
+      botao.disabled = true;
+
+      const typingMsg = document.createElement("div");
+      typingMsg.className = "message eva-msg typing";
+      typingMsg.innerText = "EVA está digitando...";
+      chat.appendChild(typingMsg);
       chat.scrollTop = chat.scrollHeight;
 
       try {
@@ -141,28 +131,28 @@
           body: JSON.stringify({ mensagem: texto })
         });
         const data = await response.json();
-        chat.removeChild(typing);
-        addMensagem(data.resposta || "Desculpe, não consegui responder.", "eva-msg");
-        salvarNoHistorico(data.resposta || "Desculpe, não consegui responder.", "eva-msg");
+        chat.removeChild(typingMsg);
+
+        const resposta = document.createElement("div");
+        resposta.className = "message eva-msg";
+        resposta.innerHTML = formatarMarkdown(data.resposta || "Desculpe, não consegui responder.");
+        chat.appendChild(resposta);
+        chat.scrollTop = chat.scrollHeight;
       } catch (e) {
-        chat.removeChild(typing);
-        addMensagem("Erro ao se comunicar com a IA.", "eva-msg");
-        salvarNoHistorico("Erro ao se comunicar com a IA.", "eva-msg");
+        chat.removeChild(typingMsg);
+        const erro = document.createElement("div");
+        erro.className = "message eva-msg";
+        erro.innerText = "Erro ao se comunicar com a IA.";
+        chat.appendChild(erro);
       } finally {
-        btn.disabled = false;
+        botao.disabled = false;
       }
     }
 
-    function salvarNoHistorico(texto, tipo) {
-      const historico = JSON.parse(localStorage.getItem("chat_nave")) || [];
-      historico.push({ texto, tipo });
-      localStorage.setItem("chat_nave", JSON.stringify(historico));
-    }
-
     function encerrarConversa() {
-      localStorage.removeItem("chat_nave");
+      const chat = document.getElementById("chat");
       chat.innerHTML = "";
-      addMensagem("Conversa encerrada. Sempre que precisar, estou aqui para ajudar!", "eva-msg");
+      localStorage.removeItem("chatHistory");
     }
   </script>
 </body>
