@@ -23,12 +23,14 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 20px;
       margin-top: 30px;
+      box-sizing: border-box;
     }
     .logo {
       text-align: center;
     }
     .logo img {
-      max-height: 80px;
+      max-width: 80%;
+      height: auto;
       margin-bottom: 10px;
     }
     .messages {
@@ -64,12 +66,14 @@
       margin-top: 20px;
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
     textarea {
-      flex: 1;
+      flex: 1 1 auto;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      min-width: 200px;
     }
     button {
       padding: 10px 20px;
@@ -78,6 +82,22 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .chat-container {
+        padding: 15px;
+      }
+      textarea {
+        width: 100%;
+        font-size: 16px;
+      }
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
+      .input-container {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -101,7 +121,7 @@
       return texto
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/【\d+:\d+†source】/g, '')
+        .replace(/【\d+:\d+\u2020source】/g, '')
         .replace(/\n/g, '<br>');
     }
 
