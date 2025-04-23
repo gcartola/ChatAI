@@ -44,16 +44,18 @@
       background: #e6f0ff;
       padding: 10px;
       border-radius: 10px;
-      display: inline-block;
+      display: block;
       max-width: 80%;
+      margin-left: auto;
     }
     .eva-msg {
       text-align: left;
       background: #f0f0f0;
       padding: 10px;
       border-radius: 10px;
-      display: inline-block;
+      display: block;
       max-width: 80%;
+      margin-right: auto;
     }
     .typing {
       font-style: italic;
@@ -91,9 +93,7 @@
   </div>
 
   <div class="chat-container">
-    <div class="messages" id="chat">
-      <!-- mensagens aparecem aqui -->
-    </div>
+    <div class="messages" id="chat"></div>
     <div class="input-container">
       <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
       <button onclick="enviarMensagem()" id="btn-enviar">Enviar</button>
