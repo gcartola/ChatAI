@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EVA - Assistente Nave (Simulado)</title>
-  <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -35,25 +35,25 @@
       margin-top: 20px;
       max-height: 300px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     .message {
-      margin-bottom: 15px;
+      max-width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      display: inline-block;
     }
     .user-msg {
-      text-align: right;
+      align-self: flex-end;
       background: #e6f0ff;
-      padding: 10px;
-      border-radius: 10px;
-      display: inline-block;
-      max-width: 80%;
+      text-align: right;
     }
     .eva-msg {
-      text-align: left;
+      align-self: flex-start;
       background: #f0f0f0;
-      padding: 10px;
-      border-radius: 10px;
-      display: inline-block;
-      max-width: 80%;
+      text-align: left;
     }
     .typing {
       font-style: italic;
@@ -82,7 +82,7 @@
 </head>
 <body>
   <div class="logo">
-    <img src="imagem.png" alt="Logo Nave IA" />
+    <img src="/static/imagem.png" alt="Logo Nave IA">
     <h4>Assistente EVA - Suporte Nave</h4>
   </div>
 
@@ -90,27 +90,42 @@
     <div class="messages" id="chat"></div>
     <div class="input-container">
       <textarea id="mensagem" rows="2" placeholder="Escreva sua dúvida..."></textarea>
-      <button onclick="enviarMensagem()">Enviar</button>
+      <button id="enviar" onclick="enviarMensagem()">Enviar</button>
     </div>
   </div>
 
   <script>
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("mensagem");
+    const botao = document.getElementById("enviar");
+
+    window.onload = () => {
+      const historico = JSON.parse(localStorage.getItem("historicoEVA")) || [];
+      historico.forEach(({tipo, texto}) => renderMensagem(tipo, texto));
+    }
+
+    function renderMensagem(tipo, texto) {
+      const msg = document.createElement("div");
+      msg.className = "message " + (tipo === 'user' ? "user-msg" : "eva-msg");
+      msg.innerText = texto;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
     async function enviarMensagem() {
-      const input = document.getElementById("mensagem");
-      const chat = document.getElementById("chat");
       const texto = input.value.trim();
       if (!texto) return;
 
-      const userMsg = document.createElement("div");
-      userMsg.className = "message user-msg";
-      userMsg.innerText = texto;
-      chat.appendChild(userMsg);
-      input.value = "";
+      renderMensagem("user", texto);
+      salvarNoHistorico("user", texto);
 
-      const typingMsg = document.createElement("div");
-      typingMsg.className = "message eva-msg typing";
-      typingMsg.innerText = "EVA está digitando...";
-      chat.appendChild(typingMsg);
+      input.value = "";
+      botao.disabled = true;
+
+      const digitando = document.createElement("div");
+      digitando.className = "message eva-msg typing";
+      digitando.innerText = "EVA está digitando...";
+      chat.appendChild(digitando);
       chat.scrollTop = chat.scrollHeight;
 
       try {
@@ -119,22 +134,24 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mensagem: texto })
         });
-
         const data = await response.json();
-        chat.removeChild(typingMsg);
-
-        const resposta = document.createElement("div");
-        resposta.className = "message eva-msg";
-        resposta.innerText = data.resposta || "Desculpe, não consegui responder.";
-        chat.appendChild(resposta);
-        chat.scrollTop = chat.scrollHeight;
+        chat.removeChild(digitando);
+        renderMensagem("eva", data.resposta);
+        salvarNoHistorico("eva", data.resposta);
       } catch (e) {
-        chat.removeChild(typingMsg);
-        const erro = document.createElement("div");
-        erro.className = "message eva-msg";
-        erro.innerText = "Erro ao se comunicar com a IA.";
-        chat.appendChild(erro);
+        chat.removeChild(digitando);
+        const erro = "Erro ao se comunicar com a IA.";
+        renderMensagem("eva", erro);
+        salvarNoHistorico("eva", erro);
+      } finally {
+        botao.disabled = false;
       }
+    }
+
+    function salvarNoHistorico(tipo, texto) {
+      const historico = JSON.parse(localStorage.getItem("historicoEVA")) || [];
+      historico.push({ tipo, texto });
+      localStorage.setItem("historicoEVA", JSON.stringify(historico));
     }
   </script>
 </body>
