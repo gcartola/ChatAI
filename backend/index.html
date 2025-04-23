@@ -38,6 +38,7 @@
     }
     .message {
       margin-bottom: 15px;
+      white-space: pre-wrap;
     }
     .user-msg {
       text-align: right;
@@ -100,7 +101,8 @@
       return texto
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/【\d+:\d+†source】/g, '');
+        .replace(/【\d+:\d+†source】/g, '')
+        .replace(/\n/g, '<br>');
     }
 
     async function enviarMensagem() {
