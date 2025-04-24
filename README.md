@@ -2,6 +2,8 @@
 
 Este repositório apresenta um projeto-piloto que integra a API de Assistants da OpenAI com a plataforma de atendimento Gleap, criando uma interface de suporte inteligente aos usuários da Nave. O objetivo é oferecer respostas imediatas baseadas em FAQ antes da abertura de um chamado.
 
+Acesse a demonstração online: 👉 https://bit.ly/naveai
+
 🚀 Visão Geral
 
 A assistente "Eva" atua como uma interface visual de chat, conectando-se ao backend que utiliza a OpenAI Assistants API para processar mensagens e responder com base em:
@@ -22,6 +24,10 @@ Uvicorn: Servidor ASGI para execução local
 
 Gleap (Eva): Interface visual de atendimento integrada ao frontend
 
+Quasar + HTML + JS: Interface interativa responsiva e moderna
+
+Render.com: Hospedagem gratuita e fácil de configurar para o backend
+
 📊 Objetivos do Projeto
 
 🔻 Reduzir o volume de tickets manuais
@@ -37,15 +43,17 @@ Gleap (Eva): Interface visual de atendimento integrada ao frontend
 ├── backend/
 │   ├── main.py              # Endpoint FastAPI que aciona a Assistants API
 │   ├── requirements.txt     # Dependências Python do backend
+│   ├── static/
+│   │   └── imagem.png       # Logo exibida no frontend
 │
 ├── frontend/
-│   └── gleap_integration.js # Simula a integração com o Gleap
+│   └── index.html           # Interface de chat responsiva (Quasar + JS)
 │
 ├── docs/
 │   └── FAQ.md               # Conteúdo base usado pelo Assistant
 │
 ├── .env                     # Chaves e variáveis sensíveis
-├── README.md                # Este documento
+└── README.md                # Este documento
 
 🚧 Setup Local para Desenvolvedores
 
@@ -55,7 +63,7 @@ cd nave-ia-suporte-piloto
 
 # 2. Criar ambiente virtual
 python -m venv venv
-venv\Scripts\activate  # Windows
+source venv/bin/activate  # ou venv\Scripts\activate no Windows
 
 # 3. Instalar dependências
 pip install -r backend/requirements.txt
@@ -71,32 +79,6 @@ A API ficará acessível em:
 
 POST http://localhost:8000/ia-suporte
 
-🚹 Integração com a Eva (Gleap)
-
-O que o Gleap oferece:
-
-🖊️ Chat visual com o usuário
-
-⚖️ Webhook customizável para envio das mensagens
-
-Configuração no Gleap:
-
-Acesse: Settings > Eva > Webhook URL
-
-Informe: https://api.nave.com.br/ia-suporte
-
-Payload enviado pela Eva:
-
-{
-  "mensagem": "Como acessar meus contratos?"
-}
-
-Resposta da IA (automática):
-
-{
-  "resposta": "Para visualizar seus contratos, acesse o menu lateral..."
-}
-
 🛠️ Funcionamento Interno do Backend
 
 Cria uma thread para cada interação
@@ -108,6 +90,20 @@ Executa um run com base no assistant_id
 Aguarda com polling até que o status seja completed
 
 Retorna a resposta gerada pelo modelo
+
+🧪 Funcionalidades do Frontend
+
+Interface responsiva (mobile/desktop)
+
+Integração com backend usando fetch
+
+Histórico de conversa salvo em localStorage
+
+Loading com "EVA está digitando..."
+
+Botão "Encerrar conversa" para limpar histórico
+
+Formatação automática de respostas (negrito, itálico, quebra de linha)
 
 📊 Benefícios Esperados
 
@@ -123,7 +119,7 @@ Depois:
 
 📈 Redução de 60 a 70% nos tickets
 
-🤪 Respostas empáticas e em linguagem natural
+🤗 Respostas empáticas e em linguagem natural
 
 ✅ Suporte focado em casos críticos
 
@@ -133,13 +129,21 @@ Depois:
 
 Modelo: gpt-4
 
-Ferramentas: File Search (vetor com o FAQ)
+Ferramentas: File Search com FAQ vetorizado
 
-Instruções do sistema:
+Instruções:
 
 Atue como um atendente treinado para responder perguntas sobre o sistema Nave. Use apenas informações do FAQ. Oriente o usuário a abrir um chamado se não tiver certeza da resposta.
 
 🌍 Roadmap Futuro
+
+
+
+🙏 Contribuições
+
+Pull requests são bem-vindos! Para sugestões, melhorias ou bugs, abra uma issue ou entre em contato com o mantenedor.
+
+Feito com ❤️ para melhorar a experiência dos usuários e empoderar o suporte da Nave.
 
 
 
